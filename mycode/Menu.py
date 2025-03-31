@@ -9,20 +9,20 @@ from mycode.Const import WIN_WIDTH, WIN_HEIGHT, COLOR_TEXT, MENU_OPTIONS
 class Menu:
     def __init__(self, window):
         self.window = window
-        self.surf = pygame.image.load("./assets/Background/PNG/Throne/throne room.png")
+        self.surf = pygame.image.load("./assets/Background/Throne/throne_room.png")
         self.scaled_image = pygame.transform.scale(self.surf, (WIN_WIDTH, WIN_HEIGHT))
         self.rect = self.surf.get_rect(left=0, top=0)
         self.particles = []
 
-
     def run(self):
         # Sound menu
         pygame.mixer_music.load('./assets/Sounds/menu_sound.wav')
-        # pygame.mixer_music.play(-1)
+        pygame.mixer_music.play(-1)
+        menu_option = 0
 
         dark_overlay = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
-        dark_overlay.set_alpha(60)  # Valor entre 0 (totalmente transparente) e 255 (totalmente opaco)
-        dark_overlay.fill((0, 0, 0))  # Preenchendo com preto
+        dark_overlay.set_alpha(60)
+        dark_overlay.fill((0, 0, 0))
 
         while True:
             self.window.blit(self.scaled_image, (0, 0)) # Background
@@ -32,11 +32,13 @@ class Menu:
 
             # Adicionando dinamicamente as opções do menu
             for i in range(len(MENU_OPTIONS)):
-                self.menu_text(25, MENU_OPTIONS[i], COLOR_TEXT, (WIN_WIDTH / 2, 300 + 40 * i))
+                if i == menu_option:
+                    self.menu_text(25, MENU_OPTIONS[i], (255, 223, 0), (WIN_WIDTH / 2, 300 + 40 * i))
+                else:
+                    self.menu_text(25, MENU_OPTIONS[i], COLOR_TEXT, (WIN_WIDTH / 2, 300 + 40 * i))
 
-
-            self.draw_particles()  # Desenhar partículas
-            self.update_particles()  # Atualizar partículas
+            self.draw_particles()
+            self.update_particles()
 
             pygame.display.flip()
 
@@ -45,6 +47,17 @@ class Menu:
                 if event.type == pygame.QUIT:
                     pygame.quit()  # Close Window
                     quit()  # End Pygame
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_DOWN:
+                        menu_option +=1
+                        if menu_option >= len(MENU_OPTIONS):
+                            menu_option = 0
+                    if event.key == pygame.K_UP:
+                        menu_option -=1
+                        if menu_option < 0:
+                            menu_option = 2
+                    if event.key == pygame.K_RETURN:
+                        return MENU_OPTIONS[menu_option]
 
     def menu_text(self, text_size: int, text: str, text_color: tuple, text_center_pos: tuple):
         text_font: Font = pygame.font.Font("./assets/Fonts/MedievalSharp-Regular.ttf", text_size)
@@ -52,12 +65,10 @@ class Menu:
         text_rect: Rect = text_surf.get_rect(center=text_center_pos)
         self.window.blit(source=text_surf, dest=text_rect)
 
-        # Renderizar sombra do texto
         shadow_surf = text_font.render(text, True, (0, 0, 0))  # Preto para a sombra
         shadow_rect = shadow_surf.get_rect(center=(text_center_pos[0] + 3, text_center_pos[1] + 3))
         self.window.blit(shadow_surf, shadow_rect)
 
-        # Renderizar texto principal por cima, com brilho
         text_surf: pygame.Surface = text_font.render(text, True, text_color)
         text_rect: pygame.Rect = text_surf.get_rect(center=text_center_pos)
         self.window.blit(text_surf, text_rect)
@@ -67,7 +78,6 @@ class Menu:
             pygame.draw.circle(self.window, (255, 100, 0), (particle[0], particle[1]), particle[2])
 
     def update_particles(self):
-
         # Adicionar novas partículas aleatoriamente
         if len(self.particles) < 50:
             x = random.randint(0, WIN_WIDTH)
@@ -75,7 +85,6 @@ class Menu:
             radius = random.randint(2, 4)  # Tamanho aleatório
             self.particles.append([x, y, radius])
 
-        # Atualizar posição (subir lentamente) e reduzir tamanho
         for particle in self.particles:
             particle[1] -= random.randint(1, 3)  # Subir
             particle[0] += random.choice([-1, 1])  # Movimento horizontal aleatório
